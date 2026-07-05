@@ -55,7 +55,12 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "pctracker.db"
-                ).build().also { INSTANCE = it }
+                )
+                    // The schema is still evolving during early testing; destructively
+                    // recreating the local cache on a mismatch is fine since nothing here
+                    // is irreplaceable (it's just scraped prices and settings that reseed).
+                    .fallbackToDestructiveMigration()
+                    .build().also { INSTANCE = it }
             }
         }
     }

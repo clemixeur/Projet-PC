@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.pctracker.ui.diagnostics.DiagnosticsScreen
 import com.pctracker.ui.home.HomeScreen
 import com.pctracker.ui.links.ProductLinksScreen
 import com.pctracker.ui.settings.SettingsScreen
@@ -13,6 +14,7 @@ import com.pctracker.ui.settings.SettingsScreen
 private const val ROUTE_HOME = "home"
 private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_LINKS = "links/{componentId}"
+private const val ROUTE_DIAGNOSTICS = "diagnostics"
 
 @Composable
 fun AppNav() {
@@ -22,11 +24,15 @@ fun AppNav() {
         composable(ROUTE_HOME) {
             HomeScreen(
                 onOpenSettings = { navController.navigate(ROUTE_SETTINGS) },
-                onOpenLinks = { componentId -> navController.navigate("links/$componentId") }
+                onOpenLinks = { componentId -> navController.navigate("links/$componentId") },
+                onOpenDiagnostics = { navController.navigate(ROUTE_DIAGNOSTICS) }
             )
         }
         composable(ROUTE_SETTINGS) {
             SettingsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(ROUTE_DIAGNOSTICS) {
+            DiagnosticsScreen(onBack = { navController.popBackStack() })
         }
         composable(
             ROUTE_LINKS,

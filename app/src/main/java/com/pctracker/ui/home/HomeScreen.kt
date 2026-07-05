@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
@@ -36,7 +37,8 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     onOpenSettings: () -> Unit,
-    onOpenLinks: (Long) -> Unit
+    onOpenLinks: (Long) -> Unit,
+    onOpenDiagnostics: () -> Unit
 ) {
     val repo = rememberRepository()
     val viewModel: HomeViewModel = viewModel(
@@ -54,6 +56,9 @@ fun HomeScreen(
                 actions = {
                     IconButton(onClick = { WorkScheduler.triggerOneOff(context) }) {
                         Icon(Icons.Filled.Refresh, contentDescription = "Actualiser maintenant")
+                    }
+                    IconButton(onClick = onOpenDiagnostics) {
+                        Icon(Icons.Filled.BugReport, contentDescription = "Diagnostic scraping")
                     }
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Filled.Settings, contentDescription = "Reglages")

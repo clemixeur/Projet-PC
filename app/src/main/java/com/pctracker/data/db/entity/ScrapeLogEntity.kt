@@ -14,6 +14,7 @@ data class ScrapeLogEntity(
     val timestamp: Long,
     val provider: String,
     val componentId: Long?,
+    val productUrl: String?,
     val success: Boolean,
     val message: String?
 )

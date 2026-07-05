@@ -93,6 +93,7 @@ class PriceRepository(private val db: AppDatabase) {
                     timestamp = now,
                     provider = result.provider.name,
                     componentId = result.componentId,
+                    productUrl = result.productUrl,
                     success = result.error == null,
                     message = result.error ?: "OK"
                 )
@@ -183,6 +184,8 @@ class PriceRepository(private val db: AppDatabase) {
 
     fun productLinksForComponent(componentId: Long): Flow<List<ProductLinkEntity>> =
         db.productLinkDao().observeForComponent(componentId)
+
+    fun recentScrapeLogs(limit: Int = 100) = db.scrapeLogDao().observeRecent(limit)
 
     suspend fun pruneOldData(now: Long) {
         val cutoff = now - java.util.concurrent.TimeUnit.DAYS.toMillis(180)
