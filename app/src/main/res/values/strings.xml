@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PC Price Tracker</string>
+    <string name="notification_channel_name">Alertes bonnes affaires</string>
+    <string name="notification_channel_description">Notifie quand le total de la configuration passe sous le seuil défini</string>
+    <string name="notification_title">Bonne affaire détectée !</string>
+</resources>
