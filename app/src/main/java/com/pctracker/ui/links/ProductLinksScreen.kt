@@ -93,8 +93,12 @@ fun ProductLinksScreen(componentId: Long, onBack: () -> Unit) {
 
             OutlinedTextField(
                 value = url,
-                onValueChange = { url = it },
+                onValueChange = { newUrl ->
+                    url = newUrl
+                    Provider.fromUrl(newUrl)?.let { detected -> selectedProvider = detected }
+                },
                 label = { Text("URL de la fiche produit") },
+                supportingText = { Text("Le fournisseur est detecte automatiquement depuis l'URL") },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             )
             OutlinedTextField(

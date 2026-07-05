@@ -1,5 +1,8 @@
 package com.pctracker.ui.settings
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -136,6 +140,56 @@ fun SettingsScreen(onBack: () -> Unit) {
                         com.pctracker.work.WorkScheduler.schedule(context, it)
                     }
                 )
+            }
+
+            item {
+                Text("Sauvegarde", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
+            }
+            item {
+                BackupEditor(viewModel = viewModel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BackupEditor(viewModel: SettingsViewModel) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            viewModel.exportBackup(uri, context) { success ->
+                val message = if (success) "Sauvegarde exportee" else "Echec de l'export"
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            viewModel.importBackup(uri, context) { success ->
+                val message = if (success) "Sauvegarde importee" else "Echec de l'import (fichier invalide ?)"
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                "Exporte les liens produits, remises, bon d'achat et seuil dans un fichier, " +
+                    "pour les restaurer apres une reinstallation ou sur un autre appareil.",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Button(onClick = { exportLauncher.launch("pc-price-tracker-backup.json") }) {
+                    Text("Exporter")
+                }
+                Button(
+                    onClick = { importLauncher.launch(arrayOf("application/json")) },
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text("Importer")
+                }
             }
         }
     }

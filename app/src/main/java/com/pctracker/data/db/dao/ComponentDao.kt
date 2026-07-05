@@ -18,6 +18,9 @@ interface ComponentDao {
     @Query("SELECT * FROM components WHERE id = :id")
     suspend fun getById(id: Long): ComponentEntity?
 
+    @Query("SELECT * FROM components WHERE key = :key")
+    suspend fun getByKey(key: String): ComponentEntity?
+
     @Query("SELECT COUNT(*) FROM components")
     suspend fun count(): Int
 

@@ -1,6 +1,9 @@
 package com.pctracker.data.repository
 
 import com.pctracker.data.Provider
+import com.pctracker.data.backup.BackupCodec
+import com.pctracker.data.backup.BackupPayload
+import com.pctracker.data.backup.ProductLinkBackup
 import com.pctracker.data.db.AppDatabase
 import com.pctracker.data.db.entity.AppSettingsEntity
 import com.pctracker.data.db.entity.ComponentEntity
@@ -191,6 +194,72 @@ class PriceRepository(private val db: AppDatabase) {
         val cutoff = now - java.util.concurrent.TimeUnit.DAYS.toMillis(180)
         db.priceSnapshotDao().deleteOlderThan(cutoff)
         db.scrapeLogDao().deleteOlderThan(cutoff)
+    }
+
+    suspend fun exportBackup(): String {
+        val components = db.componentDao().getAll()
+        val keyById = components.associate { it.id to it.key }
+        val links = db.productLinkDao().getAllOnce().mapNotNull { link ->
+            val key = keyById[link.componentId] ?: return@mapNotNull null
+            ProductLinkBackup(key, link.provider, link.url, link.label, link.enabled)
+        }
+        val discounts = db.providerSettingDao().getAll().associate { it.provider to it.discountPercent }
+        val voucher = db.voucherDao().get() ?: SeedData.voucher
+        val settings = db.appSettingsDao().get() ?: SeedData.appSettings
+
+        return BackupCodec.encode(
+            BackupPayload(
+                productLinks = links,
+                providerDiscounts = discounts,
+                voucherBalance = voucher.balance,
+                voucherInitialAmount = voucher.initialAmount,
+                voucherExpirationDate = voucher.expirationDate,
+                thresholdTotal = settings.thresholdTotal,
+                autoThresholdEnabled = settings.autoThresholdEnabled,
+                scrapeIntervalHours = settings.scrapeIntervalHours
+            )
+        )
+    }
+
+    suspend fun importBackup(json: String) {
+        val payload = BackupCodec.decode(json)
+
+        db.productLinkDao().deleteAll()
+        for (link in payload.productLinks) {
+            val component = db.componentDao().getByKey(link.componentKey) ?: continue
+            db.productLinkDao().insert(
+                ProductLinkEntity(
+                    componentId = component.id,
+                    provider = link.provider,
+                    url = link.url,
+                    label = link.label,
+                    enabled = link.enabled
+                )
+            )
+        }
+
+        for (setting in db.providerSettingDao().getAll()) {
+            val restored = payload.providerDiscounts[setting.provider] ?: continue
+            db.providerSettingDao().update(setting.copy(discountPercent = restored))
+        }
+
+        val voucher = db.voucherDao().get() ?: SeedData.voucher
+        db.voucherDao().update(
+            voucher.copy(
+                balance = payload.voucherBalance,
+                initialAmount = payload.voucherInitialAmount,
+                expirationDate = payload.voucherExpirationDate
+            )
+        )
+
+        val settings = db.appSettingsDao().get() ?: SeedData.appSettings
+        db.appSettingsDao().update(
+            settings.copy(
+                thresholdTotal = payload.thresholdTotal,
+                autoThresholdEnabled = payload.autoThresholdEnabled,
+                scrapeIntervalHours = payload.scrapeIntervalHours
+            )
+        )
     }
 
     data class ScrapedResult(

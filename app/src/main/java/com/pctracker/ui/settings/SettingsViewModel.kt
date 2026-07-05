@@ -1,5 +1,7 @@
 package com.pctracker.ui.settings
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pctracker.data.Provider
@@ -7,10 +9,12 @@ import com.pctracker.data.db.entity.AppSettingsEntity
 import com.pctracker.data.db.entity.ProviderSettingEntity
 import com.pctracker.data.db.entity.VoucherEntity
 import com.pctracker.data.repository.PriceRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SettingsViewModel(private val repo: PriceRepository) : ViewModel() {
 
@@ -36,4 +40,26 @@ class SettingsViewModel(private val repo: PriceRepository) : ViewModel() {
     fun setAutoThreshold(enabled: Boolean) = viewModelScope.launch { repo.setAutoThresholdEnabled(enabled) }
 
     fun setScrapeIntervalHours(hours: Int) = viewModelScope.launch { repo.setScrapeIntervalHours(hours) }
+
+    fun exportBackup(uri: Uri, context: Context, onResult: (Boolean) -> Unit) = viewModelScope.launch {
+        val success = withContext(Dispatchers.IO) {
+            runCatching {
+                val json = repo.exportBackup()
+                context.contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
+                    ?: error("Impossible d'ouvrir le fichier")
+            }.isSuccess
+        }
+        onResult(success)
+    }
+
+    fun importBackup(uri: Uri, context: Context, onResult: (Boolean) -> Unit) = viewModelScope.launch {
+        val success = withContext(Dispatchers.IO) {
+            runCatching {
+                val json = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                    ?: error("Impossible de lire le fichier")
+                repo.importBackup(json)
+            }.isSuccess
+        }
+        onResult(success)
+    }
 }

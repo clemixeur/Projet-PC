@@ -20,6 +20,9 @@ interface ProductLinkDao {
     @Query("SELECT * FROM product_links")
     fun observeAll(): Flow<List<ProductLinkEntity>>
 
+    @Query("SELECT * FROM product_links")
+    suspend fun getAllOnce(): List<ProductLinkEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(link: ProductLinkEntity): Long
 
@@ -28,4 +31,7 @@ interface ProductLinkDao {
 
     @Delete
     suspend fun delete(link: ProductLinkEntity)
+
+    @Query("DELETE FROM product_links")
+    suspend fun deleteAll()
 }
