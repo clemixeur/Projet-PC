@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -79,7 +78,7 @@ fun ProductLinksScreen(componentId: Long, onBack: () -> Unit) {
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier.menuAnchor().fillMaxWidth().padding(top = 8.dp)
                 )
-                androidx.compose.material3.ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     Provider.entries.forEach { provider ->
                         DropdownMenuItem(
                             text = { Text(provider.displayName) },
