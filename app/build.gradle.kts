@@ -16,6 +16,21 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        getByName("debug") {
+            // Committed on purpose: a fixed debug keystore (standard Android debug
+            // alias/password, not a secret) so every CI build - and every developer's
+            // local build - signs with the same certificate. Without this, each build
+            // machine's auto-generated ~/.android/debug.keystore differs, and Android
+            // refuses to install an "update" whose signature doesn't match the
+            // previously installed APK ("Application non installee").
+            storeFile = file("../keystore/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -26,6 +41,7 @@ android {
         }
         debug {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
